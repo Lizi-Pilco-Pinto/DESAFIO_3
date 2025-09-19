@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Problemas con Propagación del Error</title>
+<style>
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        margin: 0;
+        padding: 0;
+        background: #ecfdf5;
+        color: #2f3e46;
+    }
+
+    header {
+        background: linear-gradient(135deg, #059669, #10b981);
+        color: white;
+        padding: 20px;
+        text-align: center;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    }
+
+    h1 {
+        margin: 0;
+        font-size: 28px;
+    }
+
+    .tabs {
+        display: flex;
+        justify-content: center;
+        background: #d1fae5;
+        border-bottom: 3px solid #059669;
+    }
+
+    .tab {
+        flex: 1;
+        padding: 15px;
+        cursor: pointer;
+        text-align: center;
+        font-weight: bold;
+        color: #065f46;
+        background: #a7f3d0;
+        transition: all 0.3s ease;
+    }
+
+    .tab:hover {
+        background: #6ee7b7;
+    }
+
+    .tab.active {
+        background: #059669;
+        color: white;
+        border-radius: 8px 8px 0 0;
+    }
+
+    .content {
+        display: none;
+        padding: 25px;
+        background: white;
+        border-radius: 0 0 12px 12px;
+        margin: 20px auto;
+        max-width: 700px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    .content.active {
+        display: block;
+    }
+
+    h2 {
+        color: #059669;
+    }
+
+    label {
+        display: block;
+        margin-top: 12px;
+        font-weight: bold;
+        color: #064e3b;
+    }
+
+    input {
+        padding: 8px;
+        margin-top: 4px;
+        width: 160px;
+        border: 2px solid #10b981;
+        border-radius: 6px;
+        outline: none;
+        transition: 0.3s;
+    }
+
+    input:focus {
+        border-color: #047857;
+        box-shadow: 0 0 5px rgba(16,185,129,0.6);
+    }
+
+    button {
+        margin-top: 18px;
+        padding: 12px 20px;
+        background: #10b981;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: bold;
+        transition: background 0.3s;
+    }
+
+    button:hover {
+        background: #059669;
+    }
+
+    #resultado1, #resultado2 {
+        margin-top: 20px;
+        padding: 18px;
+        background: #f0fdf4;
+        border-left: 5px solid #059669;
+        border-radius: 8px;
+        font-size: 16px;
+    }
+</style>
+</head>
+<body>
+<header>
+    <h1>Problemas con Propagación del Error</h1>
+</header>
+
+<div class="tabs">
+    <div class="tab active" onclick="openTab(1)">Problema 1: Carbono-14</div>
+    <div class="tab" onclick="openTab(2)">Problema 2: Enfriamiento de Newton</div>
+</div>
+
+<!-- Problema 1: Carbono-14 -->
+<div id="content1" class="content active">
+    <h2>Datación con Carbono-14</h2>
+    <p>
+        Se tiene una muestra de carbono-14. A partir de la fracción medida y de la vida media del C-14,
+        se determina la edad de la muestra con propagación de error.
+    </p>
+
+    <form id="form1">
+        <label>Vida media (años): <input type="number" id="t12" value="5730"></label>
+        <label>σ(vida media): <input type="number" id="dt12" value="30"></label>
+
+        <label>Fracción medida (f/f0): <input type="number" step="0.0001" id="frac" value="0.7745"></label>
+        <label>σ(fracción): <input type="number" step="0.0001" id="dfrac" value="0.005"></label>
+
+        <button type="button" onclick="resolver1()">Calcular</button>
+    </form>
+
+    <div id="resultado1"></div>
+</div>
+
+    <!-- Problema 2: Enfriamiento de Newton -->
+    <div id="content2" class="content">
+    <h2>Escena del crimen - Ley de enfriamiento de Newton</h2>
+    <p>
+        Un policía encuentra un cuerpo en una habitación. Se mide la temperatura del cadáver en dos momentos,
+        y usando la ley de enfriamiento de Newton se determina la hora aproximada de muerte.
+    </p>
+
+    <form id="form2">
+        <label>Temperatura ambiente Ts (°F): <input type="number" id="Ts" value="69"></label>
+        <label>σ(Ts): <input type="number" id="dTs" value="0.5"></label>
+
+        <label>Temp. cadáver T1 (°F): <input type="number" id="T1" value="79.5"></label>
+        <label>σ(T1): <input type="number" id="dT1" value="0.5"></label>
+
+        <label>Temp. cadáver T2 (°F, 1h después): <input type="number" id="T2" value="78"></label>
+        <label>σ(T2): <input type="number" id="dT2" value="0.5"></label>
+
+        <label>Temp. normal T0 (°F): <input type="number" id="T0" value="98.6"></label>
+        <label>σ(T0): <input type="number" id="dT0" value="0.3"></label>
+
+        <button type="button" onclick="resolver2()">Calcular</button>
+    </form>
+
+    <div id="resultado2"></div>
+</div>
+
+    <script>
+    // Tabs
+    function openTab(n){
+        document.querySelectorAll(".tab").forEach((tab,i)=>{
+        tab.classList.toggle("active",i===n-1);
+        });
+        document.querySelectorAll(".content").forEach((c,i)=>{
+        c.classList.toggle("active",i===n-1);
+        });
+    }
+
+    // Problema 1: Carbono-14
+    function resolver1(){
+        let t12 = parseFloat(document.getElementById("t12").value);
+        let dt12 = parseFloat(document.getElementById("dt12").value);
+        let frac = parseFloat(document.getElementById("frac").value);
+        let dfrac = parseFloat(document.getElementById("dfrac").value);
+
+        let k = -Math.log(2)/t12;
+        let t = Math.log(frac)/k;
+
+    function partial(f, vars, idx, delta){
+        let v1 = [...vars]; v1[idx]+=delta;
+        let v2 = [...vars]; v2[idx]-=delta;
+        return (f(...v1)-f(...v2))/(2*delta);
+    }
+
+    function f_t(frac,t12){
+        let k = -Math.log(2)/t12;
+        return Math.log(frac)/k;
+    }
+
+        let dt_dfrac = partial(f_t,[frac,t12],0,1e-6);
+        let dt_dt12 = partial(f_t,[frac,t12],1,1e-3);
+
+        let sigma_t = Math.sqrt(
+        (dt_dfrac*dfrac)**2 +
+        (dt_dt12*dt12)**2
+    );
+
+    document.getElementById("resultado1").innerHTML = `
+        <b>Resultados:</b><br>
+        Edad estimada: <b>${t.toFixed(0)} ± ${sigma_t.toFixed(0)} años</b>
+    `;
+    }
+
+    // Problema 2: Enfriamiento de Newton
+    function resolver2(){
+        let Ts = parseFloat(document.getElementById("Ts").value);
+        let dTs = parseFloat(document.getElementById("dTs").value);
+        let T1 = parseFloat(document.getElementById("T1").value);
+        let dT1 = parseFloat(document.getElementById("dT1").value);
+        let T2 = parseFloat(document.getElementById("T2").value);
+        let dT2 = parseFloat(document.getElementById("dT2").value);
+        let T0 = parseFloat(document.getElementById("T0").value);
+        let dT0 = parseFloat(document.getElementById("dT0").value);
+
+        let k = -Math.log((T2 - Ts)/(T1 - Ts));
+        let t = -(1/k)*Math.log((T1 - Ts)/(T0 - Ts));
+
+    function partial(f, vars, idx, delta){
+        let v1 = [...vars]; v1[idx]+=delta;
+        let v2 = [...vars]; v2[idx]-=delta;
+        return (f(...v1)-f(...v2))/(2*delta);
+    }
+
+    function f_k(T1,T2,Ts){ return -Math.log((T2 - Ts)/(T1 - Ts)); }
+    function f_t(T1,T2,Ts,T0){
+        let k = f_k(T1,T2,Ts);
+        return -(1/k)*Math.log((T1 - Ts)/(T0 - Ts));
+        }
+
+        let dt_dT1 = partial(f_t,[T1,T2,Ts,T0],0,1e-4);
+        let dt_dT2 = partial(f_t,[T1,T2,Ts,T0],1,1e-4);
+        let dt_dTs = partial(f_t,[T1,T2,Ts,T0],2,1e-4);
+        let dt_dT0 = partial(f_t,[T1,T2,Ts,T0],3,1e-4);
+
+        let sigma_t = Math.sqrt(
+        (dt_dT1*dT1)**2 +
+        (dt_dT2*dT2)**2 +
+        (dt_dTs*dTs)**2 +
+        (dt_dT0*dT0)**2
+        );
+
+        document.getElementById("resultado2").innerHTML = `
+        <b>Resultados:</b><br>
+        Constante k = ${k.toFixed(5)} h⁻¹<br>
+        Tiempo desde la muerte: <b>${t.toFixed(2)} ± ${sigma_t.toFixed(2)} horas</b>
+        `;
+    }
+    </script>
+</body>
+</html>
